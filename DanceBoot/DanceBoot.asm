@@ -17,76 +17,126 @@
 // Certain reset conditions do not relaunch the bootloader
 .include "CheckResetCause.asm"
 
-// We'll use this register regularily
-clr regZero
-
-// Set Next / Prev as inputs with pull-ups
-cbi		NextDDR, NextNum
-cbi		PrevDDR, PrevNum
-sbi		NextPRT, NextNum
-sbi		PrevPRT, PrevNum
-
-// Setup RS-485 control lines
-cbi		ReadEnablePRT, ReadEnablePin
-cbi		SendEnablePRT, SendEnablePin
-sbi		ReadEnableDDR, ReadEnablePin
-sbi		SendEnableDDR, SendEnablePin
-
-
-
-// Setup USART
-
-// Setup Y ptr to first USART register UCSR0A (0xC0)
-ldi		YL, low (UCSR0A)
-ldi		YH, high(UCSR0A)
-
-// Store BaudRateRegisterH to UBRR0H (0xC5)
-ldi		regTemp, high (BaudRateRegister)
-std		Y+5, regTemp
-// Store BaudRateRegisterL to UBRR0L (0xC4)
-ldi		regTemp, low  (BaudRateRegister)
-std		Y+4, regTemp
-
-// UCSR0C (0xC2) = 0b00000110 (default)
-ldi		regTemp,   0b00000110
-std		Y+2, regTemp
-
-// UCSR0A (0xC0) = 0b00000000 (default)
-std		Y+0, regZero
-
-// UCSR0B (0xC1) = 0b00011000 (enable Rx / Tx)
-ldi		regTemp,   0b00011000
-std		Y+2, regTemp
-
-// Enable pull-up on Rx pin
-sbi		SerialRxPRT, SerialRxPin
-
+.include "Initialize.asm"
 
 ////// Wait for Next / Prev to go low
 
+clr		regDirectionDetect
 
-// Enable Pin Change detection
-ldi		regTemp,   PinChangeMaskValue
-sts		PinChangeMaskRegister, regTemp
+DetectProximalLoop:
+
+// Skip the jump if Next is still High
+sbis	NextPIN, NextNum
+// If Next is Low, jump to marking it Proximal
+rjmp	NextIsProximal
+
+// Skip the loop if Prev is now Low
+sbic	PrevPIN, PrevNum
+
+// loop
+rjmp DetectProximalLoop
+
+// First of two increments
+inc		regDirectionDetect
+
+// If the above jumps to here, regDirectionDetect is only incremented once
+NextIsProximal:
+inc		regDirectionDetect
+
+// Save Proximal/Distal
+ldi		regTemp, 0
+call    EEPROM_Update
+
+// Distal Low
+call	DistalLow
+
+///////// Read Bytes from bus continuously until Proximal goes High
+
+// Start the initial address as zero just in case
+clr		regAddress
 
 // Clear Pin Change Flag
 ser		regTemp
 sts		PCIFR, regTemp
 
+WaitForProximalHighForAddressing:
+// Read USART Register A
+in		regTemp, UCSR0A
+// If there is no new data, skip
+sbrc	regTemp, UDRE0
+// Grab latest byte
+in		regAddress, UDR0
+
 // Wait for Pin Change Flag
-PinChangeWait:
 sbis	PCIFR, PinChangeMaskNumber
-rjmp	PinChangeWait
+rjmp	WaitForProximalHighForAddressing
 
-// Detect which IO Low
+// Wait for one more byte
+WaitForRepeatedAddress:
+in		regTemp, UCSR0A
+sbrs	regTemp, UDRE0
+rjmp	WaitForRepeatedAddress
+// Grab latest byte
+in		regTemp, UDR0
 
-// Save Proximal/Distal
+// Make sure they're the same
+cpse	regTemp, regAddress
 
-// Distal Low
+rjmp	AddressInitializationErrorRead
 
-// Wait for Proximal High
+inc		regAddress
+
+// Make sure we're not at the end
+cpi		regAddress, 255
+
+breq	AddressInitializationErrorLimit
+
+///////// Announce new address and propagate /////////
+
+// Enable RS-485 sending
+sbi		SendEnablePRT, SendEnablePin
+
+// Send address
+out		UDR0, regAddress
 
 
-// Record last byte seen on bus
+// Save address to EEPROM
 
-//
+
+// Wait for send to complete
+
+
+// Distal Release
+
+
+// Send Address again
+
+
+// Wait Send complete
+
+
+// Disable RS-485 sending
+cbi		SendEnablePRT, SendEnablePin
+
+
+///////// Wait for Distal or Proximal to go Low /////////
+
+// If Distal Low, propagate, then loop
+// If Proximal Low, propagate, then wait for commands
+
+
+///////// Handle Commands /////////
+
+
+///////// Load Page /////////
+
+
+///////// Check User Program /////////
+
+.include "CheckUserProgram.asm"
+
+///////// Functions /////////
+
+
+.include "SignalPropagate.asm"
+.include "EEPROM.asm"
