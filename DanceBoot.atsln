@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Atmel Studio Solution File, Format Version 11.00
+Project("{18226A42-8477-4023-8AD2-40C49DA407C9}") = "DanceBoot", "DanceBoot\DanceBoot.asmproj", "{982905C9-A00A-43E5-AB7C-AF9BDB88601E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|AVR = Debug|AVR
+		Release|AVR = Release|AVR
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{982905C9-A00A-43E5-AB7C-AF9BDB88601E}.Debug|AVR.ActiveCfg = Debug|AVR
+		{982905C9-A00A-43E5-AB7C-AF9BDB88601E}.Debug|AVR.Build.0 = Debug|AVR
+		{982905C9-A00A-43E5-AB7C-AF9BDB88601E}.Release|AVR.ActiveCfg = Release|AVR
+		{982905C9-A00A-43E5-AB7C-AF9BDB88601E}.Release|AVR.Build.0 = Release|AVR
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
