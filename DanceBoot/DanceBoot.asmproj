@@ -80,6 +80,9 @@
     <Compile Include="SignalPropagate.asm">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="USART.asm">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Assembler.targets" />
 </Project>

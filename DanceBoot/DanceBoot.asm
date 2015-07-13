@@ -74,12 +74,7 @@ sbis	PCIFR, PinChangeMaskNumber
 rjmp	WaitForProximalHighForAddressing
 
 // Wait for one more byte
-WaitForRepeatedAddress:
-lds		regTemp, UCSR0A
-sbrs	regTemp, RXC0
-rjmp	WaitForRepeatedAddress
-// Grab latest byte
-lds		regTemp, UDR0
+call	USART_ReadByte
 
 // Make sure they're the same
 cpse	regTemp, regAddress
@@ -197,6 +192,26 @@ breq	WaitForDistalOrProximalToAsert
 ///////// Handle Commands /////////
 HandleCommands:
 
+// Read UDR to clear read flag
+lds		regTemp, UDR0
+
+HandleCommandsLoop:
+
+// Wait for and read a command byte
+call	USART_ReadByte
+
+// First byte is 0xff
+cpi		regTemp, 0xff
+
+// If first byte is incorrect, loop
+brne	HandleCommandsLoop
+
+
+
+CommandError:
+call	ProximalLow
+rjmp	HandleCommands
+
 
 ///////// Load Page /////////
 
@@ -211,3 +226,4 @@ HandleCommands:
 .include "SignalPropagate.asm"
 .include "EEPROM.asm"
 .include "Errors.asm"
+.include "USART.asm"
