@@ -14,16 +14,16 @@
 .def regCRCHigh = r16
 .def regCRCLow  = r17
 
-.def regTemp = r0
+.def regTemp = r18
 
 /**
  * Value meanings
  * 0x01 == NextIsProximal
  * 0x02 == NextIsDistal
  */
-.def regDirectionDetect = r3
+.def regDirectionDetect = r20
 
 
 .def regArgument = r3
 
-.def regAddress = r4
+.def regAddress = r19

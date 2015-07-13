@@ -14,7 +14,7 @@ tst		regTemp
 // Branch if result was zero (no reset flags are set. Weird)
 breq	CheckResetCauseEnd
 
-.def	FlagsForResetCondition = 1 << EXTRF | 1 << PORF
+.equ	FlagsForResetCondition = 1 << EXTRF | 1 << PORF
 
 // Compare regTemp (MCUSR) with reset flags that we bootload for
 andi	regTemp, FlagsForResetCondition

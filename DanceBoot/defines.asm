@@ -9,7 +9,7 @@
 /**
  * Set this value for the device we're using
  */
-.device ATmega328p
+.device ATmega168pa
 
 /**
  * Value is device and fuse setting specific

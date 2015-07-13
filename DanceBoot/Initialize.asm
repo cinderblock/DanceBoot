@@ -49,7 +49,7 @@ std		Y+0, regZero
 
 // UCSR0B (0xC1) = 0b00011000 (enable Rx / Tx)
 ldi		regTemp,   0b00011000
-std		Y+2, regTemp
+std		Y+1, regTemp
 
 // Enable pull-up on Rx pin
 sbi		SerialRxPRT, SerialRxPin
