@@ -3,8 +3,13 @@
  *
  *  Created: 2015-07-12 2:23:31 PM
  *   Author: Cameron
- */ 
+ */
 
+// Clear the stack pointer
+ldi		regTemp, low(RAMEND)
+out		SPL, regTemp
+ldi		regTemp, high(RAMEND)
+out		SPH, regTemp
 
 // We'll use this register regularily
 clr regZero
