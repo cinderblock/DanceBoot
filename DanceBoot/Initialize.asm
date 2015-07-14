@@ -5,6 +5,9 @@
  *   Author: Cameron
  */
 
+// Disable interrupts
+cli
+
 // Clear the stack pointer
 ldi		regTemp, low(RAMEND)
 out		SPL, regTemp
