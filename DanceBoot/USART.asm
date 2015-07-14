@@ -11,4 +11,5 @@ sbrs	regTemp, RXC0
 rjmp	USART_ReadByte
 // Grab latest byte
 lds		regTemp, UDR0
+rcall	CRC_FromTemp
 ret

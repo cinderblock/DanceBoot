@@ -47,10 +47,10 @@ inc		regDirectionDetect
 // Save Proximal/Distal too EEPROM
 ldi		regTemp, 0
 mov		regArgument, regDirectionDetect
-call    EEPROM_Update
+rcall    EEPROM_Update
 
 // Distal Low
-call	DistalLow
+rcall	DistalLow
 
 ///////// Read Bytes from bus continuously until Proximal goes High
 
@@ -74,7 +74,7 @@ sbis	PCIFR, PinChangeMaskNumber
 rjmp	WaitForProximalHighForAddressing
 
 // Wait for one more byte
-call	USART_ReadByte
+rcall	USART_ReadByte
 
 // Make sure they're the same
 cpse	regTemp, regAddress
@@ -105,7 +105,7 @@ sts		UDR0, regAddress
 // Save address to EEPROM
 ldi		regTemp, 1
 mov		regArgument, regAddress
-call    EEPROM_Update
+rcall    EEPROM_Update
 
 // Wait for send to complete
 WaitForSendToComplete:
@@ -117,7 +117,7 @@ rjmp	WaitForSendToComplete
 sts		UCSR0A, regTemp
 
 // Distal Release
-call	DistalRelease
+rcall	DistalRelease
 
 // Send Address again
 sts		UDR0, regAddress
@@ -197,8 +197,8 @@ lds		regTemp, UDR0
 
 HandleCommandsLoop:
 
-// Wait for and read a command byte
-call	USART_ReadByte
+// Wait for and read a Start byte
+rcall	USART_ReadByte
 
 // First byte is 0xff
 cpi		regTemp, 0xff
@@ -206,11 +206,167 @@ cpi		regTemp, 0xff
 // If first byte is incorrect, loop
 brne	HandleCommandsLoop
 
+// Wait for and read a second Start byte
+rcall	USART_ReadByte
 
+// Second byte is 0xff
+cpi		regTemp, 0xff
+
+// If first byte is incorrect, loop
+brne	HandleCommandsLoop
+
+// Register for handing errors
+clr		regError
+mov		regCRCLow, regTemp
+mov		regCRCHigh, regTemp
+
+// Wait for To byte
+rcall	USART_ReadByte
+
+// Check if To is a boradcast. boradcasts are better.
+cp		regTemp, regZero
+
+// If previous was equal, broadcast. Cool.
+breq	HandleLength
+
+// Compare address with read value
+cp		regAddress, regTemp
+
+breq	HandleLength
+
+// Wrong Address error
+sbr		regError, 0
+
+// Read length from bus. Length does not include 2 byte CRC length
+HandleLength:
+rcall	USART_ReadByte
+
+mov		regIncomingDataLength, regTemp
+
+// Read command
+rcall	USART_ReadByte
+
+// Check for bootloader command
+cpse	regTemp, regZero
+
+// Mark wrong command error
+sbr	regError, 1
+
+// Clear ZL used in page loading
+clr		ZL
+
+// Load page number
+rcall	USART_ReadByte
+
+// Page # does not align with Z byte
+lsr		regTemp
+
+// Move LSB of page # to MSB of ZL (using carry)
+ror		ZL
+
+// Save this value for use later
+mov		regPageEnd, ZL
+ori		ZL, 0x7F
+
+// This helps later
+dec		ZL
+
+// And the rest of the page # to ZH
+mov		ZH, regTemp
+
+// It was safe to not check length until here because we
+// know the 2 byte CRC is not included in the length. Also,
+// any data read until would have no side effects. Therefore
+// we haven't checked for errors yet. Now we need to exit
+// if we're out of length and keep reading bytes even if
+// we don't know what to do with them.
+
+// Reverse the first dec before it happens
+inc		regIncomingDataLength
+
+ReadCommandData:
+// Decrement length for each data byte
+dec		regIncomingDataLength
+
+// If we're out of bytes, go back to command handling
+breq	HandleCommandsLoop
+
+rcall	USART_ReadByte
+
+// Check for previous error and just keep reading bytes for now
+tst		regError
+brne	ReadCommandData
+
+// Increment our pointer
+inc		ZL
+
+// Check if we're writting to r0 or r1
+sbrc	ZL, 0
+
+// If we're writting to r1, we'll want to do a word write after and possibly more
+rjmp	HandleHighByte
+
+// Move incoming byte to r0
+mov		progWordLow, regTemp
+
+// And loop for now
+rjmp	ReadCommandData
+
+
+HandleHighByte:
+mov		progWordHigh, regTemp
+
+// Write word to temp page
+ldi		regTemp, 0b00001
+sts		SPMCSR, regTemp
+spm
+
+// Check if we're at the end
+cpse	ZL, regPageEnd
+
+// If not, loop
+rjmp	ReadCommandData
+
+// OK. We've gotten a whole page. We expect two more bytes with the CRC.
+// First, we make sure length says we have 2 more, then we just stay here
+// and don't use the earlier loops and checks.
+
+cpi		regIncomingDataLength, 2
+
+brne	PageCRCError
+
+rcall	USART_ReadByte
+rcall	USART_ReadByte
+
+// Check if CRC passes
+or		regCRCLow, regCRCHigh
+brne	HandleCommands
+
+// Do a Page Erase
+ldi		regTemp, 0b00011
+sts		SPMCSR, regTemp
+spm
+
+WaitForPageErase:
+lds		regTemp, SPMCSR
+sbrc	regTemp, 0
+rjmp	WaitForPageErase
+
+// Do a Page Write
+ldi		regTemp, 0b00101
+sts		SPMCSR, regTemp
+spm
+
+rjmp	HandleCommands
+
+
+PageCRCError:
+sbr		regError, 2
+rjmp	ReadCommandData
 
 CommandError:
-call	ProximalLow
-rjmp	HandleCommands
+;rcall	ProximalLow
+;rjmp	HandleCommands
 
 
 ///////// Load Page /////////
@@ -227,3 +383,4 @@ rjmp	HandleCommands
 .include "EEPROM.asm"
 .include "Errors.asm"
 .include "USART.asm"
+.include "CRC16.asm"

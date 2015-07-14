@@ -14,7 +14,7 @@
 /**
  * Value is device and fuse setting specific
  */
-.equ BootWords=256
+.equ BootWords=512
 
 .equ BootPages=(BootWords / PAGESIZE)
 

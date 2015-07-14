@@ -14,8 +14,10 @@ out		SPL, regTemp
 ldi		regTemp, high(RAMEND)
 out		SPH, regTemp
 
-// We'll use this register regularily
-clr regZero
+// We'll use these registers regularily
+clr		regZero
+//clr		regFF
+//dec		regFF
 
 ///////// Set Next / Prev as inputs with pull-ups /////////
 cbi		NextDDR, NextNum

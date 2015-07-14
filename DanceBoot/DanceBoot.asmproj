@@ -56,6 +56,9 @@
     <Compile Include="CheckUserProgram.asm">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="CRC16.asm">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DanceBoot.asm">
       <SubType>Code</SubType>
     </Compile>
