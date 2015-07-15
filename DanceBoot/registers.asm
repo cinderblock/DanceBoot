@@ -24,7 +24,7 @@
 .def regIncomingDataLength = r22
 
 .def regAddress = r19
-.def regError = r21
+.def regAddressMatch = r21
 
 .def regPageEnd = r6
 

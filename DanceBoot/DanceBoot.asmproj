@@ -65,6 +65,9 @@
     <Compile Include="defines.asm">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DirectionDetect.asm">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="EEPROM.asm">
       <SubType>Code</SubType>
     </Compile>
@@ -72,6 +75,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Initialize.asm">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PageWrite.asm">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="registers.asm">
