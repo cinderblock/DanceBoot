@@ -78,3 +78,10 @@ sbi		PrevPRT, PrevNum
 ret
 
 
+NextPrevLow:
+rcall	PrevLow
+rjmp	NextLow
+
+NextPrevRelease:
+rcall	PrevRelease
+rjmp	NextRelease

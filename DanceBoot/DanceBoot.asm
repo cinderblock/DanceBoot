@@ -21,6 +21,8 @@
 
 ///////// Handle Commands /////////
 HandleCommands:
+rcall	NextLow
+rcall	PrevLow
 
 HandleCommandsLoop:
 
@@ -41,6 +43,9 @@ cpi		regTemp, 0xff
 
 // If first byte is incorrect, loop
 brne	HandleCommandsLoop
+
+rcall	NextRelease
+rcall	PrevRelease
 
 // Register for handing address matching
 clr		regAddressMatch
@@ -88,6 +93,9 @@ inc		regIncomingDataLength
 sbrs	regAddressMatch, 0
 rjmp	NotAddressed
 
+// Clear pin change flag to detect and propagate errors later
+sbi		PCIFR, PinChangeMaskNumber
+
 // Read command
 rcall	USART_ReadByte
 
@@ -117,6 +125,12 @@ dec		regIncomingDataLength
 
 breq	OutOfData
 
+// If pin change has happened, bit will be set, so no skipping
+sbic	PCIFR, PinChangeMaskNumber
+
+// Set neighboars low to propagate the error
+rcall	NextPrevLow
+
 // Jump to the ReadByte function, it'll return for us.
 rjmp	USART_ReadByte
 
@@ -125,8 +139,8 @@ OutOfData:
 // They loose their priviledges to handle the data so we don't return and
 // instead just jump back to handling commands. To prevent a memory leak,
 // we need to pop the return address off of the stack.
-pop
-pop
+pop		regTemp
+pop		regTemp
 
 rjmp	HandleCommands
 
@@ -140,9 +154,9 @@ rjmp	HandleCommands
 ///////// Functions /////////
 
 .include "PageWrite.asm"
+.include "DirectionDetect.asm"
 .include "SignalPropagate.asm"
 .include "EEPROM.asm"
 .include "Errors.asm"
 .include "USART.asm"
 .include "CRC16.asm"
-.include "DirectionDetect.asm"

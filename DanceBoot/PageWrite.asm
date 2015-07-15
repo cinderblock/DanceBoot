@@ -72,22 +72,36 @@ rcall	ReadNextByte
 or		regCRCLow, regCRCHigh
 
 // If not, jump back to command handling
-brne	HandleCommands
+brne	PageWriteDone
 
 // Do a Page Erase
 ldi		regTemp, 0b00011
 sts		SPMCSR, regTemp
 spm
 
-WaitForPageErase:
-lds		regTemp, SPMCSR
-sbrc	regTemp, 0
-rjmp	WaitForPageErase
+rcall	WaitForSPMCSRDone
 
 // Do a Page Write
 ldi		regTemp, 0b00101
 sts		SPMCSR, regTemp
 spm
 
+rcall	WaitForSPMCSRDone
+
+PageWriteDone:
 // All done! Handle the next command.
 rjmp	HandleCommands
+
+
+WaitForSPMCSRDone:
+lds		regTemp, SPMCSR
+
+// If pin change has happened, bit will be set, so no skipping
+sbic	PCIFR, PinChangeMaskNumber
+
+// Set neighboars low to propagate the error
+rcall	NextPrevLow
+
+sbrc	regTemp, 0
+rjmp	WaitForSPMCSRDone
+ret
