@@ -21,34 +21,36 @@
 /**
  * Calculate value that IMHO should have already been defined for us.
  */
-.equ FLASHSIZE = FLASHEND + 1
-.equ FLASHPAGES= FLASHSIZE / PAGESIZE
+.equ FLASHSIZE = (FLASHEND + 1)
+.equ FLASHPAGES= (FLASHSIZE / PAGESIZE)
 
 /**
  * Location that the AVR will reset to
  */
-.equ BootOriginWord = FLASHSIZE - BootWords
+.equ BootOriginWord = (FLASHSIZE - BootWords)
 
 .equ	BaudRateRegister = 1
 
-.equ	NextDDR = DDRC
 .equ	NextPRT = PORTC
+.equ	NextDDR = DDRC
 .equ	NextPIN = PINC
 .equ	NextNum = 4
-.equ	PrevDDR = DDRC
+
 .equ	PrevPRT = PORTC
+.equ	PrevDDR = DDRC
 .equ	PrevPIN = PINC
 .equ	PrevNum = 3
 
-.equ	ReadEnableDDR = DDRC
 .equ	ReadEnablePRT = PORTC
+.equ	ReadEnableDDR = DDRC
 .equ	ReadEnablePin = 5
 
-.equ	SendEnableDDR = DDRD
 .equ	SendEnablePRT = PORTD
+.equ	SendEnableDDR = DDRD
 .equ	SendEnablePin = 2
 
 .equ	SerialRxPRT = PORTD
+.equ	SerialRxDDR = DDRD
 .equ	SerialRxPin = 0
 
 .equ	PinChangeMaskValue = 0b00011000
