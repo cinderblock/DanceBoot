@@ -99,12 +99,16 @@ sbi		PCIFR, PinChangeMaskNumber
 // Read command
 rcall	USART_ReadByte
 
+// Check for Page Erase Command
+cpi		regTemp, 0xF1
+breq	HandlePageWrite
+
 // Check for Page Write Command
-cpi		regTemp, 0x01
+cpi		regTemp, 0xF2
 breq	HandlePageWrite
 
 // Check for Readdress Command
-cpi		regTemp, 0x02
+cpi		regTemp, 0xF3
 breq	DirectionDetect
 
 
@@ -120,10 +124,23 @@ NotAddressedLoop:
 rcall	ReadNextByte
 rjmp	NotAddressedLoop
 
+// ONLY USE WITH [r]call. Will return to HandleCommands and clean up the stack
+ReadAndCheckCRC:
+rcall	USART_ReadByte
+rcall	USART_ReadByte
+
+// Check if CRC passes
+or		regCRCLow, regCRCHigh
+
+// If not, jump back to command handling after clearing stack
+brne	PopParentCallAndReturnToHandleComands
+
+ret
+
 ReadNextByte:
 dec		regIncomingDataLength
 
-breq	OutOfData
+breq	PopParentCallAndReturnToHandleComands
 
 // If pin change has happened, bit will be set, so no skipping
 sbic	PCIFR, PinChangeMaskNumber
@@ -134,7 +151,7 @@ rcall	NextPrevLow
 // Jump to the ReadByte function, it'll return for us.
 rjmp	USART_ReadByte
 
-OutOfData:
+PopParentCallAndReturnToHandleComands:
 // Someone called the ReadNextByte function and there wasn't any data left.
 // They loose their priviledges to handle the data so we don't return and
 // instead just jump back to handling commands. To prevent a memory leak,
@@ -153,6 +170,7 @@ rjmp	HandleCommands
 
 ///////// Functions /////////
 
+.include "PageErase.asm"
 .include "PageWrite.asm"
 .include "DirectionDetect.asm"
 .include "SignalPropagate.asm"

@@ -4,9 +4,8 @@
  *  Created: 2015-07-15 12:54:22 AM
  *   Author: Cameron
  */ 
-
- HandlePageWrite:
  
+PageInit:
 // Clear ZL used in page loading
 clr		ZL
 
@@ -23,14 +22,22 @@ ror		ZL
 mov		regPageEnd, ZL
 ori		ZL, 0x7F
 
-// This helps later
-dec		ZL
-
 // And the rest of the page # to ZH
 mov		ZH, regTemp
 
+ret
 
-ReadCommandData:
+HandlePageWrite:
+
+// TODO: Ensure length is not regIncomingDataLength
+
+rcall	PageInit
+
+// This helps later
+dec		ZL
+
+
+ReadPageDataByte:
 rcall	ReadNextByte
 
 // Increment our pointer
@@ -46,7 +53,7 @@ rjmp	HandleHighByte
 mov		progWordLow, regTemp
 
 // And loop for now
-rjmp	ReadCommandData
+rjmp	ReadPageDataByte
 
 
 HandleHighByte:
@@ -61,39 +68,21 @@ spm
 cpse	ZL, regPageEnd
 
 // If not, loop
-rjmp	ReadCommandData
+rjmp	ReadPageDataByte
 
-// OK. We've gotten a whole page. We expect two more bytes with the CRC.
+// OK. We've gotten a whole page. Check the CRC.
 
-rcall	ReadNextByte
-rcall	ReadNextByte
+rcall	ReadAndCheckCRC
 
-// Check if CRC passes
-or		regCRCLow, regCRCHigh
-
-// If not, jump back to command handling
-brne	PageWriteDone
-
-// Do a Page Erase
-ldi		regTemp, 0b00011
-sts		SPMCSR, regTemp
-spm
-
-rcall	WaitForSPMCSRDone
-
-// Do a Page Write
+// Setup a Page Write
 ldi		regTemp, 0b00101
+
+DoSpmAndReturnToCommandHandler:
 sts		SPMCSR, regTemp
 spm
 
-rcall	WaitForSPMCSRDone
+SpmWaitLoop:
 
-PageWriteDone:
-// All done! Handle the next command.
-rjmp	HandleCommands
-
-
-WaitForSPMCSRDone:
 lds		regTemp, SPMCSR
 
 // If pin change has happened, bit will be set, so no skipping
@@ -103,5 +92,6 @@ sbic	PCIFR, PinChangeMaskNumber
 rcall	NextPrevLow
 
 sbrc	regTemp, 0
-rjmp	WaitForSPMCSRDone
-ret
+rjmp	SpmWaitLoop
+
+rjmp	HandleCommands
