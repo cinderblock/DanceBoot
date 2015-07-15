@@ -64,16 +64,9 @@ cpse	ZL, regPageEnd
 rjmp	ReadCommandData
 
 // OK. We've gotten a whole page. We expect two more bytes with the CRC.
-// First, we make sure length says we can read two more bytes (3), then
-// we just stay here and don't use the earlier loops and checks.
 
-cpi		regIncomingDataLength, 3
-
-// If there aren't the expected number of bytes remaining, bummer
-brne	NotAddressedLoop
-
-rcall	USART_ReadByte
-rcall	USART_ReadByte
+rcall	ReadNextByte
+rcall	ReadNextByte
 
 // Check if CRC passes
 or		regCRCLow, regCRCHigh
