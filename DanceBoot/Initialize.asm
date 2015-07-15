@@ -8,23 +8,6 @@
 // Disable interrupts
 cli
 
-// Clear the stack pointer
-ldi		regTemp, low(RAMEND)
-out		SPL, regTemp
-ldi		regTemp, high(RAMEND)
-out		SPH, regTemp
-
-// We'll use these registers regularily
-clr		regZero
-//clr		regFF
-//dec		regFF
-
-///////// Set Next / Prev as inputs with pull-ups /////////
-cbi		NextDDR, NextNum
-cbi		PrevDDR, PrevNum
-sbi		NextPRT, NextNum
-sbi		PrevPRT, PrevNum
-
 ///////// Setup RS-485 control lines /////////
 
 // Set Low values on output enables
@@ -35,9 +18,25 @@ cbi		SendEnablePRT, SendEnablePin
 sbi		ReadEnableDDR, ReadEnablePin
 sbi		SendEnableDDR, SendEnablePin
 
+// Clear the stack pointer
+ldi		regTemp, low(RAMEND)
+out		SPL, regTemp
+ldi		regTemp, high(RAMEND)
+out		SPH, regTemp
 
+rcall	NextRelease
+rcall	PrevRelease
+
+// We'll use these registers regularily
+clr		regZero
+//clr		regFF
+//dec		regFF
 
 ///////// Setup USART /////////
+
+// Enable pull-up on Rx pin
+sbi		SerialRxPRT, SerialRxPin
+sbi		SerialRxDDR, SerialRxPin
 
 // Setup Y ptr to first USART register UCSR0A (0xC0)
 ldi		YL, low (UCSR0A)
@@ -61,8 +60,8 @@ std		Y+0, regZero
 ldi		regTemp,   0b00011000
 std		Y+1, regTemp
 
-// Enable pull-up on Rx pin
-sbi		SerialRxPRT, SerialRxPin
+// Read UDR to clear read flag
+lds		regTemp, UDR0
 
 
 ///////// Setup EEPROM /////////
