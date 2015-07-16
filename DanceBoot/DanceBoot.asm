@@ -62,18 +62,19 @@ rcall	USART_ReadByte
 // Check if To is a boradcast. boradcasts are better.
 cpse	regTemp, regZero
 
-// Broadcast match
+// Set NOT broadcast match
 sbr		regAddressMatch, 1
 
 // Compare address with read value
 cpse	regAddress, regTemp
 
+// Set NOT Address match
 sbr		regAddressMatch, 0
 
-// If it's not matching a broadcast
+// Skip if we didn't get a broadcast
 sbrs	regAddressMatch, 1
 
-// Skip this marking that the address also matches
+// Mark that the address also matches
 cbr		regAddressMatch, 0
 
 // Right now regAddressMatch is in one of 3 states:
@@ -111,6 +112,9 @@ breq	HandlePageWrite
 cpi		regTemp, 0xF3
 breq	DirectionDetect
 
+cpi		regTemp, 0xF4
+breq	CheckUserProgram
+
 
 // Otherwise we did not match any commands. So just continue on as if
 // we were ignoring the message because it wasn't for us.
@@ -137,6 +141,7 @@ brne	PopParentCallAndReturnToHandleComands
 
 ret
 
+// ONLY USE WITH [r]call. Will return to HandleCommands and clean up the stack
 ReadNextByte:
 dec		regIncomingDataLength
 
