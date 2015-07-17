@@ -12,7 +12,7 @@
 // Start a new section
 .cseg
 // And give it a location
-.org BootOriginWord
+.org BootloaderOrigin
 
 // Certain reset conditions do not relaunch the bootloader
 .include "CheckResetCause.asm"
@@ -110,7 +110,7 @@ breq	HandlePageWrite
 
 // Check for Readdress Command
 cpi		regTemp, 0xF3
-breq	DirectionDetect
+breq	DirectionDetectJMP
 
 cpi		regTemp, 0xF4
 breq	CheckUserProgram
@@ -127,6 +127,9 @@ rcall	USART_ReadByte
 NotAddressedLoop:
 rcall	ReadNextByte
 rjmp	NotAddressedLoop
+
+DirectionDetectJMP:
+rjmp	DirectionDetect
 
 // ONLY USE WITH [r]call. Will return to HandleCommands and clean up the stack
 ReadAndCheckCRC:

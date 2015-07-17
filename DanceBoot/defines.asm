@@ -14,20 +14,35 @@
 /**
  * Value is device and fuse setting specific
  */
-.equ BootWords=512
-
-.equ BootPages=(BootWords / PAGESIZE)
+.equ BootWords = 512
 
 /**
- * Calculate value that IMHO should have already been defined for us.
+ * Calculate values that IMHO should have already been defined for us.
+ * We start from two important constants that AVR defines:
+ *  - FLASHEND: the last possible WORD address
+ *  - PAGESIZE: the number of WORDS in each page
  */
-.equ FLASHSIZE = (FLASHEND + 1)
-.equ FLASHPAGES= (FLASHSIZE / PAGESIZE)
+
+// A useful constant
+.equ FlashSizeWords = (FLASHEND + 1)
+
+// Number of pages on this AVR type
+.equ FlashPages = (FlashSizeWords / PAGESIZE)
+
+// Number of pages used by the bootloader
+.equ BootPages = (BootWords / PAGESIZE)
+
+// Number of pages left for the user program
+.equ UserPages = FlashPages - BootPages
+
+.equ UserWords = (FlashSizeWords - BootWords)
+.equ UserBytes = (UserWords * 2)
 
 /**
- * Location that the AVR will reset to
+ * Location that the AVR will reset to is the same as the length
+ * of the user section
  */
-.equ BootOriginWord = (FLASHSIZE - BootWords)
+.equ BootloaderOrigin = UserWords
 
 .equ	BaudRateRegister = 1
 

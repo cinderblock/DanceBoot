@@ -26,7 +26,7 @@
 .def regAddress = r19
 .def regAddressMatch = r21
 
-.def regPageEnd = r6
+.def regTemp1 = r6
 
 .def regCRCLow = r13
 .def regCRCHigh = r12

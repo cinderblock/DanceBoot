@@ -19,7 +19,7 @@ lsr		regTemp
 ror		ZL
 
 // Save this value for use later
-mov		regPageEnd, ZL
+mov		regTemp1, ZL
 ori		ZL, 0x7F
 
 // And the rest of the page # to ZH
@@ -65,7 +65,7 @@ sts		SPMCSR, regTemp
 spm
 
 // Check if we're at the end
-cpse	ZL, regPageEnd
+cpse	ZL, regTemp1
 
 // If not, loop
 rjmp	ReadPageDataByte
