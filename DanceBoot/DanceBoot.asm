@@ -14,10 +14,14 @@
 // And give it a location
 .org BootloaderOrigin
 
+.include "Initialize.asm"
+
 // Certain reset conditions do not relaunch the bootloader
 .include "CheckResetCause.asm"
 
-.include "Initialize.asm"
+///////// Check User Program /////////
+
+.include "CheckUserProgram.asm"
 
 ///////// Handle Commands /////////
 HandleCommands:
@@ -169,11 +173,6 @@ pop		regTemp
 rjmp	HandleCommands
 
 
-
-
-///////// Check User Program /////////
-
-.include "CheckUserProgram.asm"
 
 ///////// Functions /////////
 

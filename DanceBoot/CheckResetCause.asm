@@ -8,25 +8,20 @@
 // Get the current reset cause(s)
 in		regTemp, MCUSR
 
-// If regTemp is empty
 tst		regTemp
 
-// Branch if result was zero (no reset flags are set. Weird)
-breq	CheckResetCauseEnd
+// If MCUSR is 0 we want to run the bootloader
+breq	HandleCommands
 
 .equ	FlagsForResetCondition = 1 << EXTRF | 1 << PORF
 
 // Compare regTemp (MCUSR) with reset flags that we bootload for
 andi	regTemp, FlagsForResetCondition
 
-// If reselt is not zero, it's a reset cause we care about, so skip to the end
-brne	CheckResetCauseClear
+// If reselt is zero, it is a reset cause we don't bootload after, so
+// check and run the user program since it probably crashed.
+breq	CheckUserProgram
 
-
-rjmp	CheckUserProgram
-
-
-CheckResetCauseClear:
 
 // Invert regTemp (MCUSR & FlagsForResetCondition)
 com		regTemp
@@ -34,4 +29,4 @@ com		regTemp
 // Use that to clear the flags that we care about. 
 out		MCUSR, regTemp
 
-CheckResetCauseEnd:
+rjmp	HandleCommands
