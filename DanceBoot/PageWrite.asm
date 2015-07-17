@@ -35,7 +35,7 @@ ret
 
 HandlePageWrite:
 
-// TODO: Ensure length is not regIncomingDataLength
+// TODO: Ensure regIncomingDataLength == PAGESIZE*2 + 2
 
 rcall	PageInit
 
