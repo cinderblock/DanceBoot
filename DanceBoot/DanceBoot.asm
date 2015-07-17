@@ -102,7 +102,7 @@ rcall	USART_ReadByte
 
 // Check for Page Erase Command
 cpi		regTemp, 0xF1
-breq	HandlePageWrite
+breq	HandlePageErase
 
 // Check for Page Write Command
 cpi		regTemp, 0xF2
