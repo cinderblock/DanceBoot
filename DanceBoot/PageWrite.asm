@@ -12,10 +12,16 @@ clr		ZL
 // Load page number
 rcall	USART_ReadByte
 
-// Page # does not align with Z byte
+// Check if master is trying to write to bootloader
+cpi		regTemp, low(UserPages)
+
+// Branch if regTemp is Same or Higher than UserPages
+brsh	NotAddressedLoop
+
+// Shift the lowest bit to the carry flag
 lsr		regTemp
 
-// Move LSB of page # to MSB of ZL (using carry)
+// The LSBit of page number is the MSBit of ZL. Use carry to set it
 ror		ZL
 
 // Save this value for use later
