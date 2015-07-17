@@ -24,12 +24,13 @@ lsr		regTemp
 // The LSBit of page number is the MSBit of ZL. Use carry to set it
 ror		ZL
 
-// Save this value to check if we're at the end
-mov		regTemp1, ZL
-ori		regTemp1, 0x7F
-
 // And the rest of the page # to ZH
 mov		ZH, regTemp
+
+// Save this value to check if we're at the end
+mov		regTemp, ZL
+ori		regTemp, 0x7F
+mov		regTemp1, regTemp
 
 ret
 
