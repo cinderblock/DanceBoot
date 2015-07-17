@@ -120,8 +120,7 @@ breq	CheckUserProgram
 // we were ignoring the message because it wasn't for us.
 
 NotAddressed:
-// Read 2 bytes to account for the CRC not being in the length
-rcall	USART_ReadByte
+// Read 1 more byte to account for the CRC not being in the length and command was read
 rcall	USART_ReadByte
 
 NotAddressedLoop:
