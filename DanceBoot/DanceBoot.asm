@@ -18,10 +18,12 @@
 
 // Certain reset conditions do not relaunch the bootloader
 .include "CheckResetCause.asm"
-
+	
 ///////// Check User Program /////////
 
 .include "CheckUserProgram.asm"
+
+.include "LoadEEPROMAddress.asm"
 
 ///////// Handle Commands /////////
 HandleCommands:

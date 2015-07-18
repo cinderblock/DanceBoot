@@ -34,8 +34,9 @@ brne	ProgramLPMLoop
 // Check if CRC passes
 or		regCRCLow, regCRCHigh
 
-// Go back to handling commands if not
-brne	HandleCommands
+// Go back to handling commands if not (via loading EEPROM
+// address since that might not have already happened)
+brne	LoadEEPROMAddress
 
 // Time to launch the user program
 

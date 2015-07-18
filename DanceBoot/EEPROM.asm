@@ -5,12 +5,7 @@
  *   Author: Cameron
  */
 
-
-/**
- * regTemp == low address byte
- * regArgument == value to save
- */
-EEPROM_Update:
+EEPROM_Read:
 
 // Wait for completion of any current write operation
 sbic	EECR, EEPE
@@ -24,6 +19,15 @@ sbi		EECR, EERE
 
 // Read EEROM Byte
 in		regTemp, EEDR
+ret
+
+
+/**
+ * regTemp == low address byte
+ * regArgument == value to save
+ */
+EEPROM_Update:
+rcall	EEPROM_Read
 
 // Compare current EEPROM value with new value
 cp		regTemp, regArgument

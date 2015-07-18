@@ -71,3 +71,6 @@
 .equ	PinChangeMaskValue = 0b00011000
 .equ	PinChangeMaskRegister = PCMSK1
 .equ	PinChangeMaskNumber = 1
+
+.equ	EEPROM_AddressLocation = 0
+.equ	EEPROM_DirAndLastLocation = 1

@@ -11,7 +11,7 @@ in		regTemp, MCUSR
 tst		regTemp
 
 // If MCUSR is 0 we want to run the bootloader
-breq	HandleCommands
+breq	LoadEEPROMAddress
 
 .equ	FlagsForResetCondition = 1 << EXTRF | 1 << PORF
 
@@ -29,4 +29,4 @@ com		regTemp
 // Use that to clear the flags that we care about. 
 out		MCUSR, regTemp
 
-rjmp	HandleCommands
+rjmp	LoadEEPROMAddress
