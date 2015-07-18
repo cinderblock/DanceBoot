@@ -10,3 +10,7 @@ LoadEEPROMAddress:
 ldi		regTemp, EEPROM_AddressLocation
 rcall	EEPROM_Read
 mov		regAddress, regTemp
+
+ldi		regTemp, EEPROM_DirAndLastLocation
+rcall	EEPROM_Read
+mov		regDirectionDetect, regTemp
