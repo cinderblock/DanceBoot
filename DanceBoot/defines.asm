@@ -74,3 +74,5 @@
 
 .equ	EEPROM_AddressLocation = 0
 .equ	EEPROM_DirAndLastLocation = 1
+
+.equ	LastDelayLength = 9999

@@ -62,7 +62,6 @@ mov		progWordLow, regTemp
 // And loop for now
 rjmp	ReadPageDataByte
 
-
 HandleHighByte:
 mov		progWordHigh, regTemp
 
@@ -95,10 +94,10 @@ lds		regTemp, SPMCSR
 // If pin change has happened, bit will be set, so no skipping
 sbic	PCIFR, PinChangeMaskNumber
 
-// Set neighboars low to propagate the error
-rcall	NextPrevLow
+// Jump back to handling commands (which sets outputs low)
+rcall	HandleCommands
 
 sbrc	regTemp, 0
 rjmp	SpmWaitLoop
 
-rjmp	HandleCommands
+rjmp	CheckForLastOrWaitForNeighborLow

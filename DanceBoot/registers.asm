@@ -13,11 +13,12 @@
 .def regTemp = r18
 
 /**
- * Value meanings
- * 0x01 == NextIsProximal
- * 0x02 == NextIsDistal
+ * Bit meanings:
+ *  - Bit 0: Direction - 0 == NextIsDistal/PrevIsProximal, 1 == PrevIsDistal/NextIsProximal
+ *  - Bit 1: Last      - 0 == Is Last,                     1 == Not Last
+ *  - Bit 7: Valid     - 0 == Is Valid,                    1 == Not Valid
  */
-.def regDirectionDetect = r20
+.def regDirectionAndLast = r20
 
 
 .def regArgument = r3

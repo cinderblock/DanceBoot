@@ -7,10 +7,46 @@
  
 DirectionDetect:
 
-// Start at 0
-clr		regDirectionDetect
+// Mark invalid and get into a know state
+ser		regDirectionAndLast
+
+// Last byte
+clr		regTemp1
+
+// flag for match
+clr		regAddressMatch
+
+
+///////// Read Bytes from bus continuously until Proximal goes High
 
 DetectProximalLoop:
+
+// Read USART Register A
+lds		regTemp, UCSR0A
+// If there is new data, skip checking if latest byte was received twice
+sbrs	regTemp, RXC0
+
+rjmp	CheckHasReceivedDoubleByte
+
+// Assume match temporarily
+inc		regAddressMatch
+
+// Grab latest byte
+lds		regAddress, UDR0
+
+// If current and last match, great. Skip next
+cpse	regAddress, regTemp1
+
+// Mark no match
+clr		regAddressMatch
+
+// Copy new byte to last
+mov		regTemp1, regAddress
+
+CheckHasReceivedDoubleByte:
+// If repeated byte has been received
+tst		regAddressMatch
+breq	DetectProximalLoop
 
 // Skip the jump if Next is still High
 sbis	NextPIN, NextNum
@@ -23,60 +59,30 @@ sbic	PrevPIN, PrevNum
 // loop
 rjmp DetectProximalLoop
 
-// First of two increments
-inc		regDirectionDetect
+// Mark NextIsDistal
+cbr		regDirectionAndLast, 0
 
-// If the above jumps to here, regDirectionDetect is only incremented once
 NextIsProximal:
-inc		regDirectionDetect
+// Mark Direction Valid
+cbr		regDirectionAndLast, 7
 
-// Save Proximal/Distal too EEPROM
-ldi		regTemp, 0
-mov		regArgument, regDirectionDetect
-rcall    EEPROM_Update
-
-// Distal Low
-rcall	DistalLow
-
-///////// Read Bytes from bus continuously until Proximal goes High
-
-// Start the initial address as 1 just in case. This will be incremented and have the first addr be 2
-ldi		regAddress, 1
-
-// Clear Pin Change Flag
-ser		regTemp
-sts		PCIFR, regTemp
-
-WaitForProximalHighForAddressing:
-// Read USART Register A
-lds		regTemp, UCSR0A
-// If there is no new data, skip
-sbrc	regTemp, RXC0
-// Grab latest byte
-lds		regAddress, UDR0
-
-// Wait for Pin Change Flag
-sbis	PCIFR, PinChangeMaskNumber
-rjmp	WaitForProximalHighForAddressing
-
-// Wait for one more byte
-rcall	USART_ReadByte
-
-// Make sure they're the same
-cpse	regTemp, regAddress
-
-rjmp	AddressInitializationErrorRead
-
+// Increment address
 inc		regAddress
 
 // If the increment rolled over to zero, the chain is too long
-brne	AnnounceAddress
+brne	SaveAddress
 
 rjmp	AddressInitializationErrorLimit
 
-///////// Announce new address and propagate /////////
+///////// Save new address and propagate /////////
 
-AnnounceAddress:
+SaveAddress:
+
+
+// Save Address too EEPROM
+ldi		regTemp, EEPROM_AddressLocation
+mov		regArgument, regAddress
+rcall	EEPROM_Update
 
 // Enable RS-485 sending
 sbi		SendEnablePRT, SendEnablePin
@@ -85,13 +91,16 @@ sbi		SendEnablePRT, SendEnablePin
 ldi		regTemp, 1 << TXC0
 sts		UCSR0A, regTemp
 
-// Send address
+// Send address once
 sts		UDR0, regAddress
 
-// Save address to EEPROM
-ldi		regTemp, 1
-mov		regArgument, regAddress
-rcall    EEPROM_Update
+USART_SendWait:
+lds		regTemp, UCSR0A
+sbrs	regTemp, UDRE0
+rjmp	USART_SendWait
+
+// Send address again
+sts		UDR0, regAddress
 
 // Wait for send to complete
 WaitForSendToComplete:
@@ -99,78 +108,60 @@ lds		regTemp, UCSR0A
 sbrs	regTemp, TXC0
 rjmp	WaitForSendToComplete
 
-// And clear TX Complete Flag
-sts		UCSR0A, regTemp
-
-// Distal Release
-rcall	DistalRelease
-
-// Send Address again
-sts		UDR0, regAddress
-
-// Wait Send complete again
-WaitForSendToCompleteAgain:
-lds		regTemp, UCSR0A
-sbrs	regTemp, TXC0
-rjmp	WaitForSendToCompleteAgain
-
 // Disable RS-485 sending
 cbi		SendEnablePRT, SendEnablePin
 
+// Distal Low
+rcall	DistalLow
 
-///////// Wait for Distal or Proximal to go Low /////////
+// And clear RX Complete Flag
+lds		regAddress, UDR0
 
-// If Distal Low, propagate, then loop
-// If Proximal Low, propagate, then wait for commands
+rcall	WaitForNeighborChange
 
-WaitForDistalOrProximalToAsert:
+// Distal Release
+rcall	NextPrevRelease
 
-// Skip the jump if Next is still High
-sbis	NextPIN, NextNum
-// If Next is Low, jump to propagating to Prev
-rjmp	SetPrevLow
+// Check if we've received more bytes
+lds		regTemp, UCSR0A
+sbrs	regTemp, RXC0
 
-// Don't loop yet if Prev is Low
-sbic	PrevPIN, PrevNum
+// Mark Last
+cbr		regDirectionAndLast, 1
 
-rjmp	WaitForDistalOrProximalToAsert
+// Save Dir/Last to EEPROM
+ldi		regTemp, EEPROM_DirAndLastLocation
+mov		regArgument, regDirectionAndLast
+rcall	EEPROM_Update
 
-// Set Next Low
-cbi		NextPRT, NextNum
-sbi		NextDDR, NextNum
+CheckForLastOrWaitForNeighborLow:
 
-WaitForPrevHigh:
-// If Prev becomes High, skip the loop
-sbis	PrevPIN, PrevNum
-rjmp	WaitForPrevHigh
+sbrc	regDirectionAndLast, 1
+rjmp	LastDelay
 
-// Next Release
-cbi		NextDDR, NextNum
-sbi		NextPRT, NextNum
+///////// Wait for Neighbor to go Low /////////
 
-cpi		regDirectionDetect, 1
-// If regDirectionDetect == 0x01 (NextIsProximal), we're just propagating an error
-breq	WaitForDistalOrProximalToAsert
+rcall	WaitForNeighborChange
 
-// Otherwise, it's time for commands
 rjmp	HandleCommands
 
-SetPrevLow:
-cbi		PrevPRT, PrevNum
-sbi		PrevDDR, PrevNum
+LastDelay:
+ldi		r24,low(LastDelayLength)
+ldi		r25,high(LastDelayLength)
+LastDelayLoop:
+sbiw	r24,1
+brne	LastDelayLoop
 
-WaitForNextHigh:
-// If Next becomes High, skip the loop
-sbis	NextPIN, NextNum
-rjmp	WaitForNextHigh
-
-// Prev Release
-cbi		PrevDDR, PrevNum
-sbi		PrevPRT, PrevNum
-
-cpi		regDirectionDetect, 2
-// If regDirectionDetect == 0x02 (NextIsDistal), we're just propagating an error
-breq	WaitForDistalOrProximalToAsert
-
-// Otherwise continue
 rjmp	HandleCommands
+
+
+WaitForNeighborChange:
+// Clear Pin Change Flag
+ser		regTemp
+sts		PCIFR, regTemp
+
+// Wait for Pin Change Flag (Proximal High)
+WaitForProximalHighForAddressingDone:
+sbis	PCIFR, PinChangeMaskNumber
+rjmp	WaitForProximalHighForAddressingDone
+ret

@@ -35,7 +35,7 @@ cp		regTemp, regArgument
 // Jump to the end return statement if they're already done
 breq	EEPROM_UpdateEnd
 
-out		EEDR, regDirectionDetect
+out		EEDR, regArgument
 
 sbi		EECR, EEMPE
 sbi		EECR, EEPE

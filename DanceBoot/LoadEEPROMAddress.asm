@@ -13,4 +13,4 @@ mov		regAddress, regTemp
 
 ldi		regTemp, EEPROM_DirAndLastLocation
 rcall	EEPROM_Read
-mov		regDirectionDetect, regTemp
+mov		regDirectionAndLast, regTemp
