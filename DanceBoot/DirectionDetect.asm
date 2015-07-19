@@ -146,10 +146,10 @@ rcall	WaitForNeighborChange
 rjmp	HandleCommands
 
 LastDelay:
-ldi		r24,low(LastDelayLength)
-ldi		r25,high(LastDelayLength)
+ldi		regTempWordA,low(LastDelayNumberOfLoops)
+ldi		regTempWordB,high(LastDelayNumberOfLoops)
 LastDelayLoop:
-sbiw	r24,1
+sbiw	regTempWordA,1
 brne	LastDelayLoop
 
 rjmp	HandleCommands

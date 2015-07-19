@@ -33,3 +33,6 @@
 .def regCRCHigh = r12
 .def regCRCTempA = r10
 .def regCRCTempB = r23
+
+.def regTempWordA = r24
+.def regTempWordB = r25

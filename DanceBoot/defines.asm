@@ -75,4 +75,13 @@
 .equ	EEPROM_AddressLocation = 0
 .equ	EEPROM_DirAndLastLocation = 1
 
-.equ	LastDelayLength = 9999
+
+// If this is the last device, wait a minimum of 2ms before
+// starting the chain that propagates down.
+// LastDelayNumberOfLoops = (Fclk * (delay length) - (extra cycles)) / (cycles per loop)
+// Fclk = 20Mhz
+// delay length = 2ms
+// extra cycles = 4 (extra clock cycles to get in and out of loop)
+// cycles per loop = 4 (number of clock cycles per loop)
+// LastDelayNumberOfLoops = (20Mhz * 2 milliseconds - 4) / 4 == 9999
+.equ	LastDelayNumberOfLoops = 9999
