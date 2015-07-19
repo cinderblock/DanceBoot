@@ -24,8 +24,7 @@ out		SPL, regTemp
 ldi		regTemp, high(RAMEND)
 out		SPH, regTemp
 
-rcall	NextRelease
-rcall	PrevRelease
+rcall	NextPrevRelease
 
 // We'll use these registers regularily
 clr		regZero

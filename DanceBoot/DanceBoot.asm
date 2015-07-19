@@ -27,8 +27,7 @@
 
 ///////// Handle Commands /////////
 HandleCommands:
-rcall	NextLow
-rcall	PrevLow
+rcall	NextPrevLow
 
 HandleCommandsLoop:
 
@@ -50,8 +49,7 @@ cpi		regTemp, 0xff
 // If first byte is incorrect, loop
 brne	HandleCommandsLoop
 
-rcall	NextRelease
-rcall	PrevRelease
+rcall	NextPrevRelease
 
 // Register for handing address matching
 clr		regAddressMatch
@@ -116,7 +114,7 @@ breq	HandlePageWrite
 
 // Check for Readdress Command
 cpi		regTemp, 0xF3
-breq	DirectionDetectJMP
+breq	DirectionDetect
 
 cpi		regTemp, 0xF4
 breq	CheckUserProgram
@@ -132,9 +130,6 @@ rcall	USART_ReadByte
 NotAddressedLoop:
 rcall	ReadNextByte
 rjmp	NotAddressedLoop
-
-DirectionDetectJMP:
-rjmp	DirectionDetect
 
 // ONLY USE WITH [r]call. Will return to HandleCommands and clean up the stack
 ReadAndCheckCRC:
