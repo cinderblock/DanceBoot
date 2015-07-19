@@ -178,6 +178,5 @@ rjmp	HandleCommands
 .include "DirectionDetect.asm"
 .include "SignalPropagate.asm"
 .include "EEPROM.asm"
-.include "Errors.asm"
 .include "USART.asm"
 .include "CRC16.asm"

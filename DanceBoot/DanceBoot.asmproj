@@ -71,9 +71,6 @@
     <Compile Include="EEPROM.asm">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Errors.asm">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Initialize.asm">
       <SubType>Code</SubType>
     </Compile>

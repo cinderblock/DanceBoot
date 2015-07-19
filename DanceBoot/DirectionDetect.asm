@@ -70,9 +70,7 @@ cbr		regDirectionAndLast, 7
 inc		regAddress
 
 // If the increment rolled over to zero, the chain is too long
-brne	SaveAddress
-
-rjmp	AddressInitializationErrorLimit
+breq	HandleCommandsJMP
 
 ///////// Save new address and propagate /////////
 
@@ -143,6 +141,7 @@ rjmp	LastDelay
 
 rcall	WaitForNeighborChange
 
+HandleCommandsJMP:
 rjmp	HandleCommands
 
 LastDelay:
